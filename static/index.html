@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Audio Director Studio</title>
+    <link rel="shortcut icon" href="#">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/wavesurfer.min.js"></script>
+</head>
+
+<body>
+    <div class="daw-container">
+        <header class="top-bar">
+            <div class="brand">🎙️ AUDIO DIRECTOR AI PRO</div>
+            <div>
+                <input type="file" id="audioInput" accept="audio/*" style="display: none;">
+                <button class="btn-primary" onclick="document.getElementById('audioInput').click()">音源ファイルを読み込む</button>
+            </div>
+        </header>
+
+        <div class="main-workspace">
+            <aside class="sidebar">
+                <div class="section-title">自動修正・解析モジュール</div>
+
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <label for="fx-declip">音割れ修復 (De-clip)</label>
+                        <input type="checkbox" id="fx-declip" checked>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <label for="fx-flute">笛のバリバリ音低減</label>
+                        <input type="checkbox" id="fx-flute" checked>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <label for="fx-denoise">AIノイズ低減</label>
+                        <input type="checkbox" id="fx-denoise" checked>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <label for="fx-demask">周波数被り（マスキング）軽減</label>
+                        <input type="checkbox" id="fx-demask" checked>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <label for="fx-stem">Stemパート分離・最適化</label>
+                        <input type="checkbox" id="fx-stem">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="target-lufs" style="margin-bottom: 6px;">ターゲットラウドネス (LUFS)</label>
+                    <input type="range" id="target-lufs" min="-24" max="-9" value="-14" style="width: 100%;">
+                    <span id="lufs-val" style="font-size: 12px; color: var(--text-muted);">-14 LUFS (配信・標準)</span>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="runProcessing()">
+                    全自動レンダリング・修復開始
+                </button>
+            </aside>
+
+            <main class="track-area">
+                <!-- 入力波形カード -->
+                <div class="waveform-card">
+                    <div class="section-title" id="track-name">オリジナル波形 (未処理)</div>
+                    <div id="waveform"></div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn-primary" onclick="waveSurfer.playPause()">再生 / 一時停止</button>
+                    </div>
+                </div>
+
+                <!-- リアルタイム進行状況パネル (新規追加) -->
+                <div class="waveform-card" id="progress-card" style="display: none;">
+                    <div class="section-title">レンダリング & 音響解析ステータス</div>
+
+                    <div style="margin: 10px 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span id="status-text" style="font-weight: bold; color: var(--accent-color);">準備中...</span>
+                            <span id="progress-percent" style="color: var(--text-muted);">0%</span>
+                        </div>
+                        <div
+                            style="width: 100%; background-color: #121214; height: 10px; border-radius: 5px; overflow: hidden;">
+                            <div id="progress-bar"
+                                style="width: 0%; height: 100%; background-color: var(--accent-color); transition: width 0.3s;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 各工程のステータスリスト -->
+                    <div class="pipeline-steps" style="margin-top: 15px; font-size: 13px; display: grid; gap: 6px;">
+                        <div id="step-1" style="color: var(--text-muted);">1. 【音割れ補正】 波形頂点の復元</div>
+                        <div id="step-2" style="color: var(--text-muted);">2. 【笛の歪み除去】 7.5kHz以上のバリバリ音カット</div>
+                        <div id="step-3" style="color: var(--text-muted);">3. 【AIノイズ除去】 背景雑音・サー音のカット</div>
+                        <div id="step-4" style="color: var(--text-muted);">4. 【マスキング軽減】 200〜400Hzの中低域被り調整</div>
+                        <div id="step-5" style="color: var(--text-muted);">5. 【ラウドネス最適化】 音量均一化 & レンダリング</div>
+                    </div>
+                </div>
+
+                <!-- 出力波形カード -->
+                <div class="waveform-card" id="result-card" style="display: none;">
+                    <div class="section-title">補正済み波形 (Mastered Audio)</div>
+                    <div id="waveform-result"></div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn-primary" onclick="resultWaveSurfer.playPause()">再生 / 一時停止</button>
+                        <a id="downloadBtn" href="#" download="mastered_audio.wav" class="btn-primary"
+                            style="text-decoration: none; background: #28a745;">修正音源をエクスポート (.wav)</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
